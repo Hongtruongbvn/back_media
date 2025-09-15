@@ -76,7 +76,7 @@ export class AuthService {
     } catch (err: any) {
       this.logger.error('Error sending verification email after retries:', err);
       mailInfo.success = false;
-      mailInfo.error = err?.message || String(err);
+      mailInfo.error = err.message || String(err);
     }
 
     const { password: _, ...user } = result.toObject();
@@ -127,7 +127,6 @@ export class AuthService {
       ),
     ]);
   }
-
   async verifyEmail(token: string): Promise<{ message: string }> {
     try {
       const payload: any = this.jwtService.verify(token);

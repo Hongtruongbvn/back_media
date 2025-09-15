@@ -9,7 +9,7 @@ export class MailerService {
   constructor() {
     this.transporter = nodemailer.createTransport({
       host: 'smtp-relay.brevo.com',
-      port: 587, // dùng STARTTLS
+      port: 587,
       secure: false,
       auth: {
         user: process.env.BREVO_SMTP_USER || '97089e001@smtp-brevo.com',
@@ -24,7 +24,7 @@ export class MailerService {
   async sendMail(to: string, subject: string, html: string) {
     try {
       const info = await this.transporter.sendMail({
-        from: `"No Reply" <${process.env.BREVO_SMTP_USER || '97089e001@smtp-brevo.com'}>`,
+        from: `"No Reply" <${process.env.BREVO_SMTP_USER}>`,
         to,
         subject,
         html,
@@ -37,7 +37,7 @@ export class MailerService {
         `❌ Error sending email: ${error.message}`,
         error.stack,
       );
-      throw error;
+      throw new Error(`Error sending email: ${error.message}`);
     }
   }
 }
