@@ -31,6 +31,6 @@ async function bootstrap() {
   // Bật validation toàn cục
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
-  await app.listen(process.env.PORT || 8888);
+  await app.listen(process.env.PORT || 8888, '0.0.0.0');
 }
 bootstrap();
