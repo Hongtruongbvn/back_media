@@ -69,7 +69,7 @@ export class AuthService {
       sub: user._id,
       email: user.email,
     });
-    const verificationUrl = `http://localhost:5173/verify-email?token=${verificationToken}`;
+    const verificationUrl = `https://font-media.vercel.app/verify-email?token=${verificationToken}`;
 
     await this.mailerService.sendMail({
       to: user.email,
@@ -94,9 +94,7 @@ export class AuthService {
   }
 
   // --- Đăng nhập ---
-  async login(
-    loginUserDto: LoginUserDto,
-  ): Promise<{ accessToken: string }> {
+  async login(loginUserDto: LoginUserDto): Promise<{ accessToken: string }> {
     const { email, password } = loginUserDto;
 
     // SỬA LỖI: Thêm .select('+password') để lấy cả trường password đã bị ẩn
@@ -135,7 +133,7 @@ export class AuthService {
 
     // 2. Gửi email
     // URL này sẽ trỏ đến trang đặt lại mật khẩu trên Frontend của bạn
-    const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
+    const resetUrl = `https://font-media.vercel.app/reset-password/${resetToken}`;
 
     await this.mailerService.sendMail({
       to: user.email,
@@ -170,5 +168,4 @@ export class AuthService {
 
     return { message: 'Đặt lại mật khẩu thành công.' };
   }
-  
 }
