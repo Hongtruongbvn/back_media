@@ -26,7 +26,6 @@ export class AuthController {
   @HttpCode(HttpStatus.CREATED)
   async register(@Body() createUserDto: CreateUserDto) {
     const { user, mailInfo } = await this.authService.register(createUserDto);
-    // Trả lại thông tin user (không có mật khẩu) và trạng thái gửi mail
     return { message: 'Đăng ký thành công!', user, mailInfo };
   }
 
@@ -48,6 +47,7 @@ export class AuthController {
   ) {
     return this.authService.resetPassword(token, password);
   }
+
   @Post('verify-email')
   @HttpCode(HttpStatus.OK)
   verifyEmail(@Body('token') token: string) {
@@ -56,6 +56,7 @@ export class AuthController {
     }
     return this.authService.verifyEmail(token);
   }
+
   @Get('verify-email')
   @HttpCode(HttpStatus.OK)
   verifyEmailGet(@Query('token') token: string) {
@@ -71,6 +72,7 @@ export class AuthController {
     const { password, ...result } = user.toObject();
     return result;
   }
+
   @Post('resend-verification')
   async resendVerification(@Body() body: { email?: string; token?: string }) {
     let user: UserDocument | null = null;

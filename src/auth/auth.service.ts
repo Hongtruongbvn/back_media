@@ -112,9 +112,13 @@ export class AuthService {
       { expiresIn: process.env.VERIFY_TOKEN_EXPIRES_IN || '1d' },
     );
 
-    const frontendUrl =
-      process.env.FRONTEND_URL || 'https://www.miproject.online';
-    const verificationUrl = `${frontendUrl.replace(/\/$/, '')}/api/auth/verify-email?token=${token}`;
+    // ✅ Trỏ trực tiếp tới backend Render
+    const backendUrl =
+      process.env.BACKEND_URL || 'https://back-media-3.onrender.com';
+    const verificationUrl = `${backendUrl.replace(
+      /\/$/,
+      '',
+    )}/api/auth/verify-email?token=${token}`;
 
     return Promise.race([
       this.mailerService.sendMail(
@@ -128,32 +132,28 @@ export class AuthService {
       ),
     ]);
   }
+
   async verifyEmail(token: string): Promise<{ message: string }> {
     try {
-      // Verify the token
       const payload = this.jwtService.verify(token, {
         secret:
           process.env.JWT_SECRET ||
           'kElQAyEpvvFYU4jGJpkSwhgIwMyvrBcCHMhxPUTWeuPUOnfWCq',
       });
 
-      // Find user by ID from token
       const user = await this.userModel.findById(payload.sub);
       if (!user) {
         throw new NotFoundException('Người dùng không tồn tại');
       }
 
-      // Check if email already verified
       if (user.isEmailVerified) {
         return { message: 'Email đã được xác thực trước đó' };
       }
 
-      // Verify that the email in token matches user's email
       if (payload.email !== user.email) {
         throw new BadRequestException('Token không khớp với email người dùng');
       }
 
-      // Update user as verified
       user.isEmailVerified = true;
       await user.save();
 
