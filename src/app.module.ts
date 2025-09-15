@@ -4,8 +4,8 @@ import { JwtModule } from '@nestjs/jwt';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { MongooseModule } from '@nestjs/mongoose';
 import { EventEmitterModule } from '@nestjs/event-emitter';
-import { ServeStaticModule } from '@nestjs/serve-static';       // 👈 NEW
-import { join } from 'path';                                    // 👈 NEW
+import { ServeStaticModule } from '@nestjs/serve-static'; // 👈 NEW
+import { join } from 'path'; // 👈 NEW
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -84,10 +84,8 @@ import { BlockModule } from './block/block.module';
 
     EventEmitterModule.forRoot(),
     MongooseModule.forRoot(
-      process.env.MONGO_URI ??
-        (() => {
-          throw new Error('MONGO_URI is not defined');
-        })(),
+      process.env.MONGO_URI ||
+        'mongodb+srv://truongph124010123075_db_user:<db_password>@cluster0.ilkkimv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0',
     ),
 
     AuthModule,
