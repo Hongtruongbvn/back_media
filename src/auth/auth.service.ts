@@ -121,7 +121,7 @@ export class AuthService {
         user.email,
         'Chào mừng! Vui lòng xác thực email của bạn',
         `<p>Xin chào ${user.username},</p>
-       <p>Cảm ơn bạn đã đăng ký. Nhấn vào <a href="${verificationUrl}">đây</a> để xác thực tài khoản (hiệu lực 24h).</p>`,
+         <p>Cảm ơn bạn đã đăng ký. Nhấn vào <a href="${verificationUrl}">đây</a> để xác thực tài khoản (hiệu lực 24h).</p>`,
       ),
       new Promise((_, reject) =>
         setTimeout(() => reject(new Error('Email sending timeout')), 15000),
@@ -137,7 +137,8 @@ export class AuthService {
         { isEmailVerified: true },
       );
       return { message: 'Xác thực email thành công!' };
-    } catch {
+    } catch (err) {
+      this.logger.error('Email verification failed:', err);
       throw new BadRequestException(
         'Token xác thực không hợp lệ hoặc đã hết hạn.',
       );
