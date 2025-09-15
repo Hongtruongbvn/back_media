@@ -128,20 +128,50 @@ export class AuthService {
       ),
     ]);
   }
-
   async verifyEmail(token: string): Promise<{ message: string }> {
     try {
-      const payload: any = this.jwtService.verify(token);
-      await this.userModel.updateOne(
-        { _id: payload.sub },
-        { isEmailVerified: true },
-      );
-      return { message: 'Xác thực email thành công!' };
-    } catch (err) {
-      this.logger.error('Email verification failed:', err);
-      throw new BadRequestException(
-        'Token xác thực không hợp lệ hoặc đã hết hạn.',
-      );
+      // Verify the token
+      const payload = this.jwtService.verify(token, {
+        secret:
+          process.env.JWT_SECRET ||
+          'kElQAyEpvvFYU4jGJpkSwhgIwMyvrBcCHMhxPUTWeuPUOnfWCq',
+      });
+
+      // Find user by ID from token
+      const user = await this.userModel.findById(payload.sub);
+      if (!user) {
+        throw new NotFoundException('Người dùng không tồn tại');
+      }
+
+      // Check if email already verified
+      if (user.isEmailVerified) {
+        return { message: 'Email đã được xác thực trước đó' };
+      }
+
+      // Verify that the email in token matches user's email
+      if (payload.email !== user.email) {
+        throw new BadRequestException('Token không khớp với email người dùng');
+      }
+
+      // Update user as verified
+      user.isEmailVerified = true;
+      await user.save();
+
+      return { message: 'Email đã được xác thực thành công' };
+    } catch (error) {
+      if (error.name === 'TokenExpiredError') {
+        throw new BadRequestException('Token đã hết hạn');
+      }
+      if (error.name === 'JsonWebTokenError') {
+        throw new BadRequestException('Token không hợp lệ');
+      }
+      if (
+        error.name === 'NotFoundException' ||
+        error.name === 'BadRequestException'
+      ) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Lỗi xác thực email');
     }
   }
 

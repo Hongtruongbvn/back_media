@@ -48,9 +48,20 @@ export class AuthController {
   ) {
     return this.authService.resetPassword(token, password);
   }
-
+  @Post('verify-email')
+  @HttpCode(HttpStatus.OK)
+  verifyEmail(@Body('token') token: string) {
+    if (!token) {
+      throw new BadRequestException('Token is required');
+    }
+    return this.authService.verifyEmail(token);
+  }
   @Get('verify-email')
-  verifyEmail(@Query('token') token: string) {
+  @HttpCode(HttpStatus.OK)
+  verifyEmailGet(@Query('token') token: string) {
+    if (!token) {
+      throw new BadRequestException('Token is required');
+    }
     return this.authService.verifyEmail(token);
   }
 
