@@ -1,0 +1,611 @@
+{
+  "groups": {
+    "_id": {
+      "type": "object",
+      "frequency": 4
+    },
+    "name": {
+      "type": "string",
+      "frequency": 4
+    },
+    "description": {
+      "type": "string",
+      "frequency": 4
+    },
+    "interests": {
+      "type": "array",
+      "frequency": 4
+    },
+    "createdAt": {
+      "type": "date",
+      "frequency": 4
+    },
+    "updatedAt": {
+      "type": "date",
+      "frequency": 4
+    },
+    "__v": {
+      "type": "number",
+      "frequency": 4
+    },
+    "owner": {
+      "type": "string",
+      "frequency": 4
+    },
+    "privacy": {
+      "type": "string",
+      "frequency": 3
+    },
+    "members": {
+      "type": "array",
+      "frequency": 3
+    },
+    "coverImage": {
+      "type": "string",
+      "frequency": 2
+    },
+    "avatar": {
+      "type": "string",
+      "frequency": 2
+    }
+  },
+  "groupmembers": {
+    "_id": {
+      "type": "object",
+      "frequency": 5
+    },
+    "user": {
+      "type": "object",
+      "frequency": 5
+    },
+    "group": {
+      "type": "object",
+      "frequency": 5
+    },
+    "role": {
+      "type": "string",
+      "frequency": 5
+    },
+    "xp": {
+      "type": "number",
+      "frequency": 5
+    },
+    "level": {
+      "type": "number",
+      "frequency": 5
+    },
+    "createdAt": {
+      "type": "date",
+      "frequency": 5
+    },
+    "updatedAt": {
+      "type": "date",
+      "frequency": 5
+    },
+    "__v": {
+      "type": "number",
+      "frequency": 5
+    }
+  },
+  "interests": {
+    "_id": {
+      "type": "object",
+      "frequency": 3
+    },
+    "name": {
+      "type": "string",
+      "frequency": 3
+    },
+    "__v": {
+      "type": "number",
+      "frequency": 3
+    }
+  },
+  "groupinvites": {},
+  "chatrooms": {
+    "_id": {
+      "type": "object",
+      "frequency": 3
+    },
+    "members": {
+      "type": "array",
+      "frequency": 3
+    },
+    "isGroupChat": {
+      "type": "boolean",
+      "frequency": 3
+    },
+    "createdAt": {
+      "type": "date",
+      "frequency": 3
+    },
+    "updatedAt": {
+      "type": "date",
+      "frequency": 3
+    },
+    "__v": {
+      "type": "number",
+      "frequency": 3
+    },
+    "lastMessage": {
+      "type": "object",
+      "frequency": 2
+    }
+  },
+  "friendrequests": {},
+  "messages": {
+    "_id": {
+      "type": "object",
+      "frequency": 3
+    },
+    "sender": {
+      "type": "object",
+      "frequency": 3
+    },
+    "chatroom": {
+      "type": "object",
+      "frequency": 3
+    },
+    "content": {
+      "type": "string",
+      "frequency": 3
+    },
+    "readBy": {
+      "type": "array",
+      "frequency": 3
+    },
+    "createdAt": {
+      "type": "date",
+      "frequency": 3
+    },
+    "updatedAt": {
+      "type": "date",
+      "frequency": 3
+    },
+    "__v": {
+      "type": "number",
+      "frequency": 3
+    }
+  },
+  "stories": {},
+  "group_invites": {},
+  "blocks": {},
+  "posts": {
+    "_id": {
+      "type": "object",
+      "frequency": 5
+    },
+    "moderationStatus": {
+      "type": "string",
+      "frequency": 5
+    },
+    "author": {
+      "type": "object",
+      "frequency": 5
+    },
+    "content": {
+      "type": "string",
+      "frequency": 5
+    },
+    "mediaUrls": {
+      "type": "array",
+      "frequency": 5
+    },
+    "commentCount": {
+      "type": "number",
+      "frequency": 5
+    },
+    "repostCount": {
+      "type": "number",
+      "frequency": 5
+    },
+    "reactions": {
+      "type": "array",
+      "frequency": 5
+    },
+    "createdAt": {
+      "type": "date",
+      "frequency": 5
+    },
+    "updatedAt": {
+      "type": "date",
+      "frequency": 5
+    },
+    "__v": {
+      "type": "number",
+      "frequency": 5
+    }
+  },
+  "userinventories": {
+    "_id": {
+      "type": "object",
+      "frequency": 5
+    },
+    "user": {
+      "type": "object",
+      "frequency": 5
+    },
+    "item": {
+      "type": "object",
+      "frequency": 5
+    },
+    "createdAt": {
+      "type": "date",
+      "frequency": 5
+    },
+    "updatedAt": {
+      "type": "date",
+      "frequency": 5
+    },
+    "__v": {
+      "type": "number",
+      "frequency": 5
+    }
+  },
+  "users": {
+    "_id": {
+      "type": "object",
+      "frequency": 5
+    },
+    "globalRole": {
+      "type": "string",
+      "frequency": 5
+    },
+    "accountStatus": {
+      "type": "string",
+      "frequency": 5
+    },
+    "presenceStatus": {
+      "type": "string",
+      "frequency": 5
+    },
+    "username": {
+      "type": "string",
+      "frequency": 5
+    },
+    "email": {
+      "type": "string",
+      "frequency": 5
+    },
+    "password": {
+      "type": "string",
+      "frequency": 5
+    },
+    "avatar": {
+      "type": "string",
+      "frequency": 5
+    },
+    "bio": {
+      "type": "string",
+      "frequency": 5
+    },
+    "coverImage": {
+      "type": "string",
+      "frequency": 5
+    },
+    "followers": {
+      "type": "array",
+      "frequency": 5
+    },
+    "following": {
+      "type": "array",
+      "frequency": 5
+    },
+    "interests": {
+      "type": "array",
+      "frequency": 5
+    },
+    "accountType": {
+      "type": "string",
+      "frequency": 5
+    },
+    "isEmailVerified": {
+      "type": "boolean",
+      "frequency": 5
+    },
+    "friends": {
+      "type": "array",
+      "frequency": 5
+    },
+    "blockedUsers": {
+      "type": "array",
+      "frequency": 5
+    },
+    "hasSelectedInterests": {
+      "type": "boolean",
+      "frequency": 5
+    },
+    "coins": {
+      "type": "number",
+      "frequency": 5
+    },
+    "xp_per_day": {
+      "type": "number",
+      "frequency": 5
+    },
+    "milestonesReached": {
+      "type": "array",
+      "frequency": 5
+    },
+    "warnings": {
+      "type": "array",
+      "frequency": 5
+    },
+    "createdAt": {
+      "type": "date",
+      "frequency": 5
+    },
+    "updatedAt": {
+      "type": "date",
+      "frequency": 5
+    },
+    "__v": {
+      "type": "number",
+      "frequency": 5
+    },
+    "xp": {
+      "type": "number",
+      "frequency": 5
+    },
+    "currentGame": {
+      "type": "object",
+      "frequency": 3
+    },
+    "equippedAvatarFrame": {
+      "type": "object",
+      "frequency": 2
+    },
+    "equippedProfileBackground": {
+      "type": "object",
+      "frequency": 1
+    },
+    "suspensionExpires": {
+      "type": "date",
+      "frequency": 1
+    }
+  },
+  "settings": {},
+  "levelrewards": {},
+  "reports": {
+    "_id": {
+      "type": "object",
+      "frequency": 5
+    },
+    "reporter": {
+      "type": "object",
+      "frequency": 5
+    },
+    "type": {
+      "type": "string",
+      "frequency": 5
+    },
+    "targetId": {
+      "type": "string",
+      "frequency": 5
+    },
+    "reason": {
+      "type": "string",
+      "frequency": 5
+    },
+    "createdAt": {
+      "type": "date",
+      "frequency": 5
+    },
+    "updatedAt": {
+      "type": "date",
+      "frequency": 5
+    },
+    "__v": {
+      "type": "number",
+      "frequency": 5
+    }
+  },
+  "orders": {
+    "_id": {
+      "type": "object",
+      "frequency": 5
+    },
+    "user": {
+      "type": "object",
+      "frequency": 5
+    },
+    "coinPackage": {
+      "type": "object",
+      "frequency": 5
+    },
+    "amount": {
+      "type": "number",
+      "frequency": 5
+    },
+    "status": {
+      "type": "string",
+      "frequency": 5
+    },
+    "paymentIntentId": {
+      "type": "string",
+      "frequency": 5
+    },
+    "createdAt": {
+      "type": "date",
+      "frequency": 5
+    },
+    "updatedAt": {
+      "type": "date",
+      "frequency": 5
+    },
+    "__v": {
+      "type": "number",
+      "frequency": 5
+    }
+  },
+  "coinpackages": {
+    "_id": {
+      "type": "object",
+      "frequency": 5
+    },
+    "packageId": {
+      "type": "string",
+      "frequency": 5
+    },
+    "name": {
+      "type": "string",
+      "frequency": 5
+    },
+    "coinsAmount": {
+      "type": "number",
+      "frequency": 5
+    },
+    "price": {
+      "type": "number",
+      "frequency": 5
+    },
+    "currency": {
+      "type": "string",
+      "frequency": 5
+    }
+  },
+  "shopitems": {
+    "_id": {
+      "type": "object",
+      "frequency": 4
+    },
+    "name": {
+      "type": "string",
+      "frequency": 4
+    },
+    "description": {
+      "type": "string",
+      "frequency": 4
+    },
+    "type": {
+      "type": "string",
+      "frequency": 4
+    },
+    "price": {
+      "type": "number",
+      "frequency": 4
+    },
+    "assetUrl": {
+      "type": "string",
+      "frequency": 4
+    },
+    "createdAt": {
+      "type": "date",
+      "frequency": 4
+    },
+    "updatedAt": {
+      "type": "date",
+      "frequency": 4
+    },
+    "__v": {
+      "type": "number",
+      "frequency": 4
+    }
+  },
+  "joinrequests": {
+    "_id": {
+      "type": "object",
+      "frequency": 1
+    },
+    "user": {
+      "type": "object",
+      "frequency": 1
+    },
+    "group": {
+      "type": "object",
+      "frequency": 1
+    },
+    "status": {
+      "type": "string",
+      "frequency": 1
+    },
+    "createdAt": {
+      "type": "date",
+      "frequency": 1
+    },
+    "updatedAt": {
+      "type": "date",
+      "frequency": 1
+    },
+    "__v": {
+      "type": "number",
+      "frequency": 1
+    }
+  },
+  "notifications": {
+    "_id": {
+      "type": "object",
+      "frequency": 5
+    },
+    "recipient": {
+      "type": "object",
+      "frequency": 5
+    },
+    "sender": {
+      "type": "object",
+      "frequency": 5
+    },
+    "type": {
+      "type": "string",
+      "frequency": 5
+    },
+    "isRead": {
+      "type": "boolean",
+      "frequency": 5
+    },
+    "link": {
+      "type": "null",
+      "frequency": 5
+    },
+    "createdAt": {
+      "type": "date",
+      "frequency": 5
+    },
+    "updatedAt": {
+      "type": "date",
+      "frequency": 5
+    },
+    "__v": {
+      "type": "number",
+      "frequency": 5
+    }
+  },
+  "comments": {
+    "_id": {
+      "type": "object",
+      "frequency": 5
+    },
+    "moderationStatus": {
+      "type": "string",
+      "frequency": 5
+    },
+    "author": {
+      "type": "object",
+      "frequency": 5
+    },
+    "post": {
+      "type": "object",
+      "frequency": 5
+    },
+    "content": {
+      "type": "string",
+      "frequency": 5
+    },
+    "likes": {
+      "type": "array",
+      "frequency": 5
+    },
+    "createdAt": {
+      "type": "date",
+      "frequency": 5
+    },
+    "updatedAt": {
+      "type": "date",
+      "frequency": 5
+    },
+    "__v": {
+      "type": "number",
+      "frequency": 5
+    }
+  }
+}
