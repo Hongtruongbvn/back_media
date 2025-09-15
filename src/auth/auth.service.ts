@@ -148,6 +148,7 @@ export class AuthService {
 
     // 🚨 Check verify email
     if (!user.isEmailVerified) {
+      // Chỉ cần truyền đúng string tiếng Việt
       throw new UnauthorizedException(
         'Tài khoản chưa được xác thực email. Vui lòng kiểm tra email hoặc yêu cầu gửi lại liên kết xác thực.',
       );
