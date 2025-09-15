@@ -113,7 +113,7 @@ export class AuthService {
     );
 
     const frontendUrl =
-      process.env.FRONTEND_URL || 'https://font-media.vercel.app';
+      process.env.FRONTEND_URL || 'https://www.miproject.online';
     const verificationUrl = `${frontendUrl.replace(/\/$/, '')}/verify-email?token=${token}`;
 
     return Promise.race([
@@ -208,7 +208,7 @@ export class AuthService {
     await user.save();
 
     const frontendUrl =
-      process.env.FRONTEND_URL || 'https://font-media.vercel.app';
+      process.env.FRONTEND_URL || 'https://www.miproject.online';
     const resetUrl = `${frontendUrl.replace(/\/$/, '')}/reset-password/${resetToken}`;
 
     await this.mailerService.sendMail(
