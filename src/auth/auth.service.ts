@@ -11,11 +11,11 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
+import { MailerService } from '@nestjs-modules/mailer';
+import { randomBytes, createHash } from 'crypto';
 import { User, UserDocument } from './schemas/user.schema';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
-import { MailerService } from '@nestjs-modules/mailer';
-import { randomBytes, createHash } from 'crypto';
 
 @Injectable()
 export class AuthService {
@@ -27,7 +27,6 @@ export class AuthService {
     private readonly mailerService: MailerService,
   ) {}
 
-  // --- Đăng ký ---
   async register(
     createUserDto: CreateUserDto,
   ): Promise<{ user: any; mailInfo?: any }> {
@@ -46,7 +45,6 @@ export class AuthService {
       );
     }
 
-    // Mã hóa mật khẩu
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(password, salt);
 
@@ -57,12 +55,10 @@ export class AuthService {
       isEmailVerified: false,
     });
 
-    // Lưu user, bắt lỗi duplicate key
     let result: UserDocument;
     try {
       result = await newUser.save();
     } catch (error: any) {
-      // Mongo duplicate key
       if (error?.code === 11000) {
         const key = Object.keys(error.keyValue || {})[0];
         const value = error.keyValue ? error.keyValue[key] : undefined;
@@ -73,17 +69,15 @@ export class AuthService {
       throw new InternalServerErrorException('Đăng ký thất bại');
     }
 
-    // Thử gửi email với retry logic
     let mailInfo = { success: false, error: null };
     try {
-      await this.sendVerificationEmailWithRetry(result, 3); // Thử 3 lần
+      await this.sendVerificationEmailWithRetry(result, 3);
       mailInfo.success = true;
     } catch (err: any) {
       this.logger.error('Error sending verification email after retries:', err);
       mailInfo.success = false;
       mailInfo.error = err?.message || String(err);
 
-      // Log chi tiết lỗi SMTP
       if (err.code === 'ETIMEDOUT') {
         this.logger.error(
           'SMTP Connection timeout - Check your SMTP configuration',
@@ -91,10 +85,7 @@ export class AuthService {
         this.logger.error(
           `SMTP Host: ${process.env.SMTP_HOST || 'smtp.gmail.com'}`,
         );
-        this.logger.error(`SMTP Port: ${process.env.SMTP_PORT || 587}`);
-        this.logger.error(
-          `SMTP User: ${process.env.SMTP_USER ? 'truongtruongbvn@gmail.com' : 'truongtruongbvn@gmail.com'}`,
-        );
+        this.logger.error(`SMTP Port: ${process.env.SMTP_PORT || 465}`);
       }
     }
 
@@ -102,13 +93,11 @@ export class AuthService {
     return { user, mailInfo };
   }
 
-  // Hàm gửi email với retry logic
   private async sendVerificationEmailWithRetry(
     user: UserDocument,
-    maxRetries: number = 3,
+    maxRetries = 3,
   ): Promise<void> {
-    let lastError;
-
+    let lastError: any;
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         await this.sendVerificationEmail(user);
@@ -119,43 +108,34 @@ export class AuthService {
       } catch (error) {
         lastError = error;
         this.logger.warn(`Attempt ${attempt} failed: ${error.message}`);
-
-        // Nếu không phải lần thử cuối, chờ một chút trước khi thử lại
         if (attempt < maxRetries) {
-          await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
+          await new Promise((r) => setTimeout(r, 1000 * attempt));
         }
       }
     }
-
     throw lastError;
   }
 
   async sendVerificationEmail(user: UserDocument) {
-    const verificationToken = this.jwtService.sign(
+    const token = this.jwtService.sign(
       { sub: user._id.toString(), email: user.email },
-      {
-        expiresIn: process.env.VERIFY_TOKEN_EXPIRES_IN || '1d',
-      },
+      { expiresIn: process.env.VERIFY_TOKEN_EXPIRES_IN || '1d' },
     );
-
     const frontendUrl =
       process.env.FRONTEND_URL || 'https://font-media.vercel.app';
-    const verificationUrl = `${frontendUrl.replace(/\/$/, '')}/verify-email?token=${verificationToken}`;
+    const verificationUrl = `${frontendUrl.replace(/\/$/, '')}/verify-email?token=${token}`;
 
-    // Gửi mail với timeout
-    const sendResult = await Promise.race([
+    return Promise.race([
       this.mailerService.sendMail({
         to: user.email,
         subject: 'Chào mừng! Vui lòng xác thực email của bạn',
         html: `<p>Xin chào ${user.username},</p>
-               <p>Cảm ơn bạn đã đăng ký. Vui lòng bấm vào <a href="${verificationUrl}">đây</a> để xác thực tài khoản. Link có hiệu lực trong 24 giờ.</p>`,
+               <p>Cảm ơn bạn đã đăng ký. Nhấn vào <a href="${verificationUrl}">đây</a> để xác thực tài khoản (hiệu lực 24h).</p>`,
       }),
       new Promise((_, reject) =>
         setTimeout(() => reject(new Error('Email sending timeout')), 15000),
       ),
     ]);
-
-    return sendResult;
   }
 
   async verifyEmail(token: string): Promise<{ message: string }> {
@@ -166,45 +146,37 @@ export class AuthService {
         { isEmailVerified: true },
       );
       return { message: 'Xác thực email thành công!' };
-    } catch (error) {
+    } catch {
       throw new BadRequestException(
         'Token xác thực không hợp lệ hoặc đã hết hạn.',
       );
     }
   }
 
-  // --- Đăng nhập ---
   async login(loginUserDto: LoginUserDto): Promise<{ accessToken: string }> {
     const { email, password } = loginUserDto;
-
     const user = await this.userModel.findOne({ email }).select('+password');
-    if (!user) {
+    if (!user)
       throw new UnauthorizedException('Email hoặc mật khẩu không chính xác.');
-    }
 
-    const isPasswordMatched = await bcrypt.compare(password, user.password);
-    if (!isPasswordMatched) {
+    const match = await bcrypt.compare(password, user.password);
+    if (!match)
       throw new UnauthorizedException('Email hoặc mật khẩu không chính xác.');
-    }
 
-    // 🚨 Check verify email
     if (!user.isEmailVerified) {
       throw new UnauthorizedException(
-        'Tài khoản chưa được xác thực email. Vui lòng kiểm tra email hoặc yêu cầu gửi lại liên kết xác thực.',
+        'Tài khoản chưa xác thực email. Kiểm tra hộp thư hoặc yêu cầu gửi lại liên kết.',
       );
     }
 
     const payload = { sub: user._id, username: user.username };
-    const accessToken = this.jwtService.sign(payload);
-
-    return { accessToken };
+    return { accessToken: this.jwtService.sign(payload) };
   }
 
   async forgotPassword(email: string): Promise<{ message: string }> {
     const user = await this.userModel.findOne({ email });
-    if (!user) {
+    if (!user)
       throw new NotFoundException('Không tìm thấy người dùng với email này.');
-    }
 
     const resetToken = randomBytes(32).toString('hex');
     user.passwordResetToken = createHash('sha256')
@@ -220,7 +192,7 @@ export class AuthService {
     await this.mailerService.sendMail({
       to: user.email,
       subject: 'Yêu cầu Đặt lại Mật khẩu',
-      html: `<p>Bạn đã yêu cầu đặt lại mật khẩu. Vui lòng bấm vào <a href="${resetUrl}">đây</a> để tiếp tục.</p><p>Link này sẽ hết hạn sau 10 phút.</p>`,
+      html: `<p>Bạn đã yêu cầu đặt lại mật khẩu. Nhấn vào <a href="${resetUrl}">đây</a> để tiếp tục. Link hết hạn sau 10 phút.</p>`,
     });
 
     return { message: 'Email đặt lại mật khẩu đã được gửi.' };
@@ -230,16 +202,13 @@ export class AuthService {
     token: string,
     newPassword: string,
   ): Promise<{ message: string }> {
-    const hashedToken = createHash('sha256').update(token).digest('hex');
-
+    const hashed = createHash('sha256').update(token).digest('hex');
     const user = await this.userModel.findOne({
-      passwordResetToken: hashedToken,
+      passwordResetToken: hashed,
       passwordResetExpires: { $gt: Date.now() },
     });
-
-    if (!user) {
+    if (!user)
       throw new BadRequestException('Token không hợp lệ hoặc đã hết hạn.');
-    }
 
     const salt = await bcrypt.genSalt();
     user.password = await bcrypt.hash(newPassword, salt);
@@ -254,18 +223,13 @@ export class AuthService {
     return this.userModel.findOne({ email });
   }
 
-  async resendVerificationEmail(
-    user: UserDocument,
-  ): Promise<{ success: boolean; error?: string }> {
+  async resendVerificationEmail(user: UserDocument) {
     try {
       await this.sendVerificationEmailWithRetry(user, 3);
       return { success: true };
     } catch (err: any) {
       this.logger.error('Error resending verification email:', err);
-      return {
-        success: false,
-        error: err?.message || String(err),
-      };
+      return { success: false, error: err?.message || String(err) };
     }
   }
 }
