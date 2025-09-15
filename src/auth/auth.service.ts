@@ -11,11 +11,11 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
-import { MailerService } from '@nestjs-modules/mailer';
 import { randomBytes, createHash } from 'crypto';
 import { User, UserDocument } from './schemas/user.schema';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
+import { MailerService } from './mailer.service';
 
 @Injectable()
 export class AuthService {
@@ -77,16 +77,6 @@ export class AuthService {
       this.logger.error('Error sending verification email after retries:', err);
       mailInfo.success = false;
       mailInfo.error = err?.message || String(err);
-
-      if (err.code === 'ETIMEDOUT') {
-        this.logger.error(
-          'SMTP Connection timeout - Check your SMTP configuration',
-        );
-        this.logger.error(
-          `SMTP Host: ${process.env.SMTP_HOST || 'smtp.gmail.com'}`,
-        );
-        this.logger.error(`SMTP Port: ${process.env.SMTP_PORT || 465}`);
-      }
     }
 
     const { password: _, ...user } = result.toObject();
@@ -126,12 +116,12 @@ export class AuthService {
     const verificationUrl = `${frontendUrl.replace(/\/$/, '')}/verify-email?token=${token}`;
 
     return Promise.race([
-      this.mailerService.sendMail({
-        to: user.email,
-        subject: 'Chào mừng! Vui lòng xác thực email của bạn',
-        html: `<p>Xin chào ${user.username},</p>
-               <p>Cảm ơn bạn đã đăng ký. Nhấn vào <a href="${verificationUrl}">đây</a> để xác thực tài khoản (hiệu lực 24h).</p>`,
-      }),
+      this.mailerService.sendMail(
+        user.email,
+        'Chào mừng! Vui lòng xác thực email của bạn',
+        `<p>Xin chào ${user.username},</p>
+         <p>Cảm ơn bạn đã đăng ký. Nhấn vào <a href="${verificationUrl}">đây</a> để xác thực tài khoản (hiệu lực 24h).</p>`,
+      ),
       new Promise((_, reject) =>
         setTimeout(() => reject(new Error('Email sending timeout')), 15000),
       ),
@@ -189,11 +179,11 @@ export class AuthService {
       process.env.FRONTEND_URL || 'https://font-media.vercel.app';
     const resetUrl = `${frontendUrl.replace(/\/$/, '')}/reset-password/${resetToken}`;
 
-    await this.mailerService.sendMail({
-      to: user.email,
-      subject: 'Yêu cầu Đặt lại Mật khẩu',
-      html: `<p>Bạn đã yêu cầu đặt lại mật khẩu. Nhấn vào <a href="${resetUrl}">đây</a> để tiếp tục. Link hết hạn sau 10 phút.</p>`,
-    });
+    await this.mailerService.sendMail(
+      user.email,
+      'Yêu cầu Đặt lại Mật khẩu',
+      `<p>Bạn đã yêu cầu đặt lại mật khẩu. Nhấn vào <a href="${resetUrl}">đây</a> để tiếp tục. Link hết hạn sau 10 phút.</p>`,
+    );
 
     return { message: 'Email đặt lại mật khẩu đã được gửi.' };
   }
