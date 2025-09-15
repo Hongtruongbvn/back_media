@@ -224,4 +224,13 @@ export class AuthService {
       return { success: false, error: err?.message || String(err) };
     }
   }
+  async findUserByToken(token: string): Promise<UserDocument | null> {
+    try {
+      const payload: any = this.jwtService.verify(token);
+      return this.userModel.findById(payload.sub);
+    } catch (err) {
+      this.logger.error('Không thể giải mã token:', err);
+      return null;
+    }
+  }
 }

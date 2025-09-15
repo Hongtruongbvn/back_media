@@ -54,25 +54,28 @@ export class AuthController {
     return this.authService.verifyEmail(token);
   }
 
-  @Post('resend-verification')
-  async resendVerification(@Body('email') email: string) {
-    const user = await this.authService.findUserByEmail(email);
-    if (!user) {
-      throw new NotFoundException('Không tìm thấy người dùng với email này.');
-    }
-
-    if (user.isEmailVerified) {
-      throw new BadRequestException('Email đã được xác thực.');
-    }
-
-    const mailInfo = await this.authService.resendVerificationEmail(user);
-    return { message: 'Email xác thực đã được gửi lại.', mailInfo };
-  }
-
   @UseGuards(JwtAuthGuard)
   @Get('me')
   getMe(@GetUser() user: UserDocument) {
     const { password, ...result } = user.toObject();
     return result;
+  }
+  @Post('resend-verification')
+  async resendVerification(@Body() body: { email?: string; token?: string }) {
+    let user: UserDocument | null = null;
+
+    if (body.email) {
+      user = await this.authService.findUserByEmail(body.email);
+    } else if (body.token) {
+      user = await this.authService.findUserByToken(body.token);
+    } else {
+      throw new BadRequestException('Cần cung cấp email hoặc token.');
+    }
+
+    if (!user) {
+      throw new NotFoundException('Không tìm thấy người dùng.');
+    }
+
+    return this.authService.resendVerificationEmail(user);
   }
 }
