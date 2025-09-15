@@ -114,7 +114,7 @@ export class AuthService {
 
     const frontendUrl =
       process.env.FRONTEND_URL || 'https://www.miproject.online';
-    const verificationUrl = `${frontendUrl.replace(/\/$/, '')}/verify-email?token=${token}`;
+    const verificationUrl = `${frontendUrl.replace(/\/$/, '')}/api/auth/verify-email?token=${token}`;
 
     return Promise.race([
       this.mailerService.sendMail(
@@ -209,7 +209,7 @@ export class AuthService {
 
     const frontendUrl =
       process.env.FRONTEND_URL || 'https://www.miproject.online';
-    const resetUrl = `${frontendUrl.replace(/\/$/, '')}/reset-password/${resetToken}`;
+    const resetUrl = `${frontendUrl.replace(/\/$/, '')}/api/auth/reset-password/${resetToken}`;
 
     await this.mailerService.sendMail(
       user.email,
