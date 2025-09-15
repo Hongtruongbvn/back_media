@@ -8,6 +8,8 @@ import {
   Get,
   Query,
   UseGuards,
+  BadRequestException,
+  NotFoundException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -50,6 +52,21 @@ export class AuthController {
   @Get('verify-email')
   verifyEmail(@Query('token') token: string) {
     return this.authService.verifyEmail(token);
+  }
+
+  @Post('resend-verification')
+  async resendVerification(@Body('email') email: string) {
+    const user = await this.authService.findUserByEmail(email);
+    if (!user) {
+      throw new NotFoundException('Không tìm thấy người dùng với email này.');
+    }
+
+    if (user.isEmailVerified) {
+      throw new BadRequestException('Email đã được xác thực.');
+    }
+
+    const mailInfo = await this.authService.resendVerificationEmail(user);
+    return { message: 'Email xác thực đã được gửi lại.', mailInfo };
   }
 
   @UseGuards(JwtAuthGuard)
