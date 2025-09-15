@@ -7,14 +7,14 @@ import {
   Param,
   Get,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
-import { UseGuards } from '@nestjs/common'; // Thêm Get và UseGuards vào import
-import { JwtAuthGuard } from './guards/jwt-auth.guard'; // Import JwtAuthGuard
-import { GetUser } from './decorators/get-user.decorator'; // Import GetUser decorator
-import { UserDocument } from './schemas/user.schema'; // Import UserDocument
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { GetUser } from './decorators/get-user.decorator';
+import { UserDocument } from './schemas/user.schema';
 
 @Controller('auth')
 export class AuthController {
@@ -23,8 +23,9 @@ export class AuthController {
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
   async register(@Body() createUserDto: CreateUserDto) {
-    const user = await this.authService.register(createUserDto);
-    return { message: 'Đăng ký thành công!', user };
+    const { user, mailInfo } = await this.authService.register(createUserDto);
+    // Trả lại thông tin user (không có mật khẩu) và trạng thái gửi mail
+    return { message: 'Đăng ký thành công!', user, mailInfo };
   }
 
   @Post('login')
@@ -51,11 +52,9 @@ export class AuthController {
     return this.authService.verifyEmail(token);
   }
 
-  @UseGuards(JwtAuthGuard) // Bảo vệ route này, yêu cầu phải có token hợp lệ
+  @UseGuards(JwtAuthGuard)
   @Get('me')
   getMe(@GetUser() user: UserDocument) {
-    // Decorator @GetUser sẽ lấy user đã được xác thực từ token
-    // Trả về thông tin user (không bao gồm mật khẩu)
     const { password, ...result } = user.toObject();
     return result;
   }

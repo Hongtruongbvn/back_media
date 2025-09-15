@@ -4,6 +4,7 @@ import {
   UnauthorizedException,
   BadRequestException,
   NotFoundException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -14,6 +15,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { MailerService } from '@nestjs-modules/mailer';
 import { randomBytes, createHash } from 'crypto';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
@@ -21,13 +23,13 @@ export class AuthService {
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     private jwtService: JwtService,
     private readonly mailerService: MailerService,
+    private readonly configService: ConfigService,
   ) {}
 
   // --- Đăng ký ---
   async register(
     createUserDto: CreateUserDto,
-  ): Promise<Omit<User, 'password'>> {
-    // ... logic kiểm tra user tồn tại, mã hóa mật khẩu ...
+  ): Promise<{ user: any; mailInfo?: any }> {
     const { username, email, password } = createUserDto;
 
     const reservedUsernames = [
@@ -51,36 +53,73 @@ export class AuthService {
       username,
       email,
       password: hashedPassword,
-      isEmailVerified: false, // Mặc định là chưa xác thực
+      isEmailVerified: false,
     });
 
-    const result = await newUser.save();
+    // Lưu user, bắt lỗi duplicate key
+    let result: UserDocument;
+    try {
+      result = await newUser.save();
+    } catch (error: any) {
+      // Mongo duplicate key
+      if (error?.code === 11000) {
+        // Tìm trường nào trùng (username / email)
+        const key = Object.keys(error.keyValue || {})[0];
+        const value = error.keyValue ? error.keyValue[key] : undefined;
+        throw new ConflictException(
+          `${key || 'Trường'} "${value}" đã tồn tại.`,
+        );
+      }
+      throw new InternalServerErrorException('Đăng ký thất bại');
+    }
 
-    // Gửi email xác thực
-    await this.sendVerificationEmail(result);
+    // Thử gửi email — nếu thất bại, KHÔNG rollback user; chỉ log và trả thông tin về frontend
+    let mailInfo = { success: false, error: null };
+    try {
+      await this.sendVerificationEmail(result);
+      mailInfo.success = true;
+    } catch (err: any) {
+      // Log lỗi (console để dễ debug trên cloud)
+      console.error('Error sending verification email:', err);
+      mailInfo.success = false;
+      mailInfo.error = err?.message || String(err);
+    }
 
     const { password: _, ...user } = result.toObject();
-    return user;
+    return { user, mailInfo };
   }
 
   async sendVerificationEmail(user: UserDocument) {
-    // Tạo một token đơn giản, có thể dùng JWT hoặc crypto
-    const verificationToken = this.jwtService.sign({
-      sub: user._id,
-      email: user.email,
-    });
-    const verificationUrl = `https://font-media.vercel.app/verify-email?token=${verificationToken}`;
+    // Sinh token riêng cho verify (hết hạn nhanh, ví dụ 24h)
+    const verificationToken = this.jwtService.sign(
+      { sub: user._id.toString(), email: user.email },
+      {
+        expiresIn:
+          this.configService.get<string>('VERIFY_TOKEN_EXPIRES_IN') || '1d',
+      },
+    );
 
-    await this.mailerService.sendMail({
+    // Lấy frontend url từ env (fallback dùng url bạn gửi)
+    const frontendUrl =
+      this.configService.get<string>('FRONTEND_URL') ||
+      'https://font-media.vercel.app';
+
+    const verificationUrl = `${frontendUrl.replace(/\/$/, '')}/verify-email?token=${verificationToken}`;
+
+    // Gửi mail
+    const sendResult = await this.mailerService.sendMail({
       to: user.email,
       subject: 'Chào mừng! Vui lòng xác thực email của bạn',
-      html: `<p>Cảm ơn bạn đã đăng ký. Vui lòng bấm vào <a href="${verificationUrl}">đây</a> để xác thực tài khoản.</p>`,
+      html: `<p>Xin chào ${user.username},</p>
+             <p>Cảm ơn bạn đã đăng ký. Vui lòng bấm vào <a href="${verificationUrl}">đây</a> để xác thực tài khoản. Link có hiệu lực trong 24 giờ.</p>`,
     });
+
+    return sendResult;
   }
 
   async verifyEmail(token: string): Promise<{ message: string }> {
     try {
-      const payload = this.jwtService.verify(token);
+      const payload: any = this.jwtService.verify(token);
       await this.userModel.updateOne(
         { _id: payload.sub },
         { isEmailVerified: true },
@@ -97,18 +136,21 @@ export class AuthService {
   async login(loginUserDto: LoginUserDto): Promise<{ accessToken: string }> {
     const { email, password } = loginUserDto;
 
-    // SỬA LỖI: Thêm .select('+password') để lấy cả trường password đã bị ẩn
     const user = await this.userModel.findOne({ email }).select('+password');
-
     if (!user) {
       throw new UnauthorizedException('Email hoặc mật khẩu không chính xác.');
     }
 
-    // Bây giờ user.password đã có giá trị
     const isPasswordMatched = await bcrypt.compare(password, user.password);
-
     if (!isPasswordMatched) {
       throw new UnauthorizedException('Email hoặc mật khẩu không chính xác.');
+    }
+
+    // 🚨 Check verify email
+    if (!user.isEmailVerified) {
+      throw new UnauthorizedException(
+        'Tài khoản chưa được xác thực email. Vui lòng kiểm tra email hoặc yêu cầu gửi lại liên kết xác thực.',
+      );
     }
 
     const payload = { sub: user._id, username: user.username };
@@ -123,17 +165,18 @@ export class AuthService {
       throw new NotFoundException('Không tìm thấy người dùng với email này.');
     }
 
-    // 1. Tạo token
     const resetToken = randomBytes(32).toString('hex');
     user.passwordResetToken = createHash('sha256')
       .update(resetToken)
       .digest('hex');
-    user.passwordResetExpires = new Date(Date.now() + 10 * 60 * 1000); // Hết hạn sau 10 phút
+    user.passwordResetExpires = new Date(Date.now() + 10 * 60 * 1000);
     await user.save();
 
-    // 2. Gửi email
-    // URL này sẽ trỏ đến trang đặt lại mật khẩu trên Frontend của bạn
-    const resetUrl = `https://font-media.vercel.app/reset-password/${resetToken}`;
+    const frontendUrl =
+      this.configService.get<string>('FRONTEND_URL') ||
+      'https://font-media.vercel.app';
+
+    const resetUrl = `${frontendUrl.replace(/\/$/, '')}/reset-password/${resetToken}`;
 
     await this.mailerService.sendMail({
       to: user.email,
@@ -159,7 +202,6 @@ export class AuthService {
       throw new BadRequestException('Token không hợp lệ hoặc đã hết hạn.');
     }
 
-    // Cập nhật mật khẩu mới đã được mã hóa
     const salt = await bcrypt.genSalt();
     user.password = await bcrypt.hash(newPassword, salt);
     user.passwordResetToken = undefined;

@@ -1,7 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Document, Types } from 'mongoose';
-import { Interest } from '../../interests/schemas/interest.schema';
-import { ShopItem } from '../../shop/schemas/shop-item.schema';
 
 export enum GlobalRole {
   USER = 'USER',
@@ -46,7 +44,7 @@ export class Warning {
 }
 const WarningSchema = SchemaFactory.createForClass(Warning);
 
-@Schema({ _id: false }) // _id: false để không tạo _id cho schema con này
+@Schema({ _id: false })
 export class GameStatus {
   @Prop({ enum: GlobalRole, default: GlobalRole.USER })
   globalRole: GlobalRole;
@@ -64,6 +62,7 @@ export class GameStatus {
 @Schema({ timestamps: true })
 export class User {
   _id: mongoose.Schema.Types.ObjectId;
+
   @Prop({ enum: GlobalRole, default: GlobalRole.USER })
   globalRole: GlobalRole;
 
@@ -85,7 +84,7 @@ export class User {
   @Prop({ required: true, unique: true, trim: true, index: true })
   email: string;
 
-  @Prop({ required: true, select: false }) // Thêm select: false để không trả về password trong các query
+  @Prop({ required: true, select: false })
   password: string;
 
   @Prop({ default: 'default_avatar.png' })
@@ -107,7 +106,7 @@ export class User {
   following: User[];
 
   @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Interest' }] })
-  interests: Interest[];
+  interests: any[];
 
   @Prop({ enum: AccountType, default: AccountType.FREE })
   accountType: AccountType;
@@ -117,36 +116,35 @@ export class User {
     ref: 'ShopItem',
     required: false,
   })
-  equippedAvatarFrame?: ShopItem;
+  equippedAvatarFrame?: any;
 
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'ShopItem',
     required: false,
   })
-  equippedProfileBackground?: ShopItem;
-
-  // --- BỔ SUNG CÁC Ô TRANG BỊ MỚI ---
-  @Prop({
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'ShopItem',
-    required: false,
-  })
-  equippedProfileEffect?: ShopItem;
+  equippedProfileBackground?: any;
 
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'ShopItem',
     required: false,
   })
-  equippedAvatarDecoration?: ShopItem;
+  equippedProfileEffect?: any;
 
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'ShopItem',
     required: false,
   })
-  equippedNameplateTheme?: ShopItem;
+  equippedAvatarDecoration?: any;
+
+  @Prop({
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'ShopItem',
+    required: false,
+  })
+  equippedNameplateTheme?: any;
 
   @Prop({ type: GameStatus, required: false })
   currentGame?: GameStatus;
@@ -161,7 +159,7 @@ export class User {
   passwordResetExpires?: Date;
 
   @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }] })
-  friends: User[]; // Danh sách bạn bè
+  friends: User[];
 
   @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }] })
   blockedUsers: User[];
@@ -169,12 +167,12 @@ export class User {
   @Prop({ default: false })
   hasSelectedInterests: boolean;
 
-  // --- BỔ SUNG TRƯỜNG TIỀN TỆ ---
-  @Prop({ type: Number, default: 100 }) // Tặng 100 coins cho người dùng mới
+  @Prop({ type: Number, default: 100 })
   coins: number;
 
   @Prop({ default: 0 })
   xp_per_day: number;
+
   @Prop({ default: 0 })
   xp: number;
 
