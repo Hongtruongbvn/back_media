@@ -111,6 +111,7 @@ export class AuthService {
       { sub: user._id.toString(), email: user.email },
       { expiresIn: process.env.VERIFY_TOKEN_EXPIRES_IN || '1d' },
     );
+
     const frontendUrl =
       process.env.FRONTEND_URL || 'https://font-media.vercel.app';
     const verificationUrl = `${frontendUrl.replace(/\/$/, '')}/verify-email?token=${token}`;
@@ -120,13 +121,14 @@ export class AuthService {
         user.email,
         'Chào mừng! Vui lòng xác thực email của bạn',
         `<p>Xin chào ${user.username},</p>
-         <p>Cảm ơn bạn đã đăng ký. Nhấn vào <a href="${verificationUrl}">đây</a> để xác thực tài khoản (hiệu lực 24h).</p>`,
+       <p>Cảm ơn bạn đã đăng ký. Nhấn vào <a href="${verificationUrl}">đây</a> để xác thực tài khoản (hiệu lực 24h).</p>`,
       ),
       new Promise((_, reject) =>
         setTimeout(() => reject(new Error('Email sending timeout')), 15000),
       ),
     ]);
   }
+
   async verifyEmail(token: string): Promise<{ message: string }> {
     try {
       const payload: any = this.jwtService.verify(token);
