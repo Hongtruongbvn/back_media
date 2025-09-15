@@ -12,8 +12,8 @@ export class MailerService {
       port: 587, // dùng STARTTLS
       secure: false,
       auth: {
-        user: process.env.BREVO_SMTP_USER || '970851001@smtp-brevo.com',
-        pass: process.env.BREVO_SMTP_PASS || 'vGxE7m3RPdZQzrN9',
+        user: process.env.BREVO_SMTP_USER || '97089e001@smtp-brevo.com',
+        pass: process.env.BREVO_SMTP_PASS || 'Q5OxAYHBWKsNFgEq',
       },
       connectionTimeout: 15000,
       greetingTimeout: 15000,
@@ -24,7 +24,7 @@ export class MailerService {
   async sendMail(to: string, subject: string, html: string) {
     try {
       const info = await this.transporter.sendMail({
-        from: `"No Reply" <${process.env.BREVO_SMTP_USER || '970851001@smtp-brevo.com'}>`,
+        from: `"No Reply" <${process.env.BREVO_SMTP_USER || '97089e001@smtp-brevo.com'}>`,
         to,
         subject,
         html,
